@@ -1,0 +1,3 @@
+Simple file system backup tool for the command line using tar and Python. 
+Required dependencies: Python2 tar
+Just change the variable "backup_location" on line 14 to the path you want your archive stored. 
