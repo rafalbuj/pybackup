@@ -1,0 +1,69 @@
+#! /usr/bin/python2
+#-*- encoding: utf-8 -*-
+import os, sys, signal ;
+from time import localtime, strftime;from sys import exit;
+red = "\033[38;5;196m"
+green = "\033[38;5;154m"
+royal = "\033[38;5;20m"
+grey = "\033[38;5;249m"
+auqua = '\033[38;5;45m'
+name = os.environ['USER']
+home = os.environ['HOME']
+current_dir = os.getcwd()
+# Change this to wherever you plan on backing the files up to.
+backup_location = '/path/to/destionation'
+var = os.listdir(backup_location)
+date = strftime("%m-%d-%Y", localtime())
+#Change this to your desired file name. It will be a tar.gz archive.
+filen ='arch_backup'
+backup_file = ''.join('%s-%s.tar.gz'%(filen,date))
+home_contents = os.listdir(home)
+script_home = sys.path[0]
+def Space(j):
+	i = 0
+	while i<=j:
+		print " ",
+		i+=1
+def sigint_handler(signum, frame):
+	print grey+'\n['+red+'*'+grey+']'+red+'Exiting'
+	sys.exit(0)
+signal.signal(signal.SIGINT, sigint_handler)
+class backup:
+	def __init__ (self):
+		if backup_file in var:
+			os.system('notify-send --expire-time=6000 -u critical -i %s/bad.png "backup found for today, %s"'%(script_home,date))
+			Space(9);print grey+'['+red+'*'+grey+']'+red+'Backup for today was found!'
+			Space(9);print grey+'['+red+'*'+grey+']'+green+'Proceed with backup?'
+			cont = raw_input(grey+'['+green+'Y'+grey+'/'+red+'n'+grey+'] '+green+'$ '+auqua)
+			if 'y' in cont or 'Y' in cont:
+				self.compress()
+			else:
+				os.system('notify-send -i %s/bad.png "Not backed up on, %s" "Good day!"'%(script_home,date)) 
+		if backup_file not in var:
+			#os.system('notify-send -i %s/good.png "Not backed up on, %s" "Creating a back up"'%(script_home,date))
+			self.compress()
+	def compress (self):
+		Space(9);print grey+'['+green+'!'+grey+']'+green+' Contents of '+auqua+'%s'%home
+		for a in home_contents:
+			sys.stdout.write(str(auqua+' %s '%a))
+			sys.stdout.flush()
+		print 
+		Space(2);print grey+'['+green+'!'+grey+']'+green+' Enter the contents you want backed up or enter '+grey+'"'+auqua+'all'+grey+'"'+green+' for more options'
+		contents = str(raw_input(green+'$ '+auqua))
+		if contents == 'all':
+			Space(7);print grey+'['+red+'!'+grey+']'+green+' Compress into on directory or leave loose?'
+			answer = raw_input(grey+'['+green+'C'+grey+'/'+red+'L'+grey+'] '+green+'$ '+auqua)
+			if 'C' in answer or 'c' in answer:
+				contents=home
+			elif 'L' in answer or 'l' in answer:
+				contents = ' '.join(home_contents)
+		Space(9);print grey+'['+red+'*'+grey+']'+green+' Are you sure you want to backup: \n'+auqua+' %s'%(contents)+grey+' to'+auqua+' %s ?'%(backup_location)
+		confirm = raw_input(grey+'['+green+'Y'+grey+'/'+red+'n'+grey+'] '+green+'$ ')
+		if 'y' in confirm or 'Y' in confirm:
+			os.system('notify-send -i %s/good.png "Not backed up on, %s" "Creating backup "'%(script_home,date))
+			os.system('tar -cvpzf %s/%s %s'%(backup_location, backup_file, contents))
+			os.system('notify-send --expire-time=6000 -u critical -i %s/good.png "Complete!" "Archive %s including %s was created in: %s"'%(script_home,backup_file,contents,backup_location))
+			Space(9);print grey+'['+green+'*'+grey+']'+green+' Completed'
+		else:
+			print grey+'['+red+'*'+grey+']'+red+'Exiting'
+backup()
